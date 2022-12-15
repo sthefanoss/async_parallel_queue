@@ -1,5 +1,5 @@
 name: async_parallel_queue
-description: A sample command-line application.
+description: Handle async calls in order with a number of workers.
 version: 0.0.1
 homepage: https://github.com/sthefanoss/async_parallel_queue
 
