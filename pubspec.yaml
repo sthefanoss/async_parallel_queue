@@ -1,6 +1,6 @@
 name: async_parallel_queue
 description: Handle async calls in order with a number of workers.
-version: 0.0.1
+version: 1.0.0
 homepage: https://github.com/sthefanoss/async_parallel_queue
 
 environment:
