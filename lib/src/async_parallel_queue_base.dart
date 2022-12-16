@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:developer';
 
-class AsyncParallelQueue<K> {
+class AsyncParallelQueue<K extends Object> {
   AsyncParallelQueue({
     this.workers = 5,
     this.verbose = false,
@@ -11,7 +11,7 @@ class AsyncParallelQueue<K> {
   int _runningCallbacks = 0;
 
   /// Callback queue. Order matters!
-  final _waitingCallbacks = [];
+  final _waitingCallbacks = <K>[];
 
   /// Used only in cancellation.
   final _completerByKey = <K, Completer>{};
@@ -51,11 +51,7 @@ class AsyncParallelQueue<K> {
       subscription.cancel();
       _completerByKey.remove(key);
       _waitingCallbacks.remove(key);
-      _streamController.add(
-        '[$key] is running.'
-        ' Running callbacks: $_runningCallbacks.'
-        ' Waiting callbacks: ${_waitingCallbacks.length}.',
-      );
+      _updateQueueStatus('[$key] start running.');
 
       try {
         completer.complete(await callback());
@@ -74,30 +70,32 @@ class AsyncParallelQueue<K> {
 
   /// Cancels a callback waiting in queue. You can not cancel a callback already running!
   void cancelCallback(K key) {
-    _waitingCallbacks.remove(key);
-    _completerByKey[key]?.completeError(CallbackCancelledException());
+    if (!_waitingCallbacks.contains(key)) return _updateQueueStatus('[$key] is not in queue.');
 
-    if (verbose) {
-      log(
-        '[$key] left the queue.'
-        ' Running: $_runningCallbacks.'
-        ' Waiting: ${_waitingCallbacks.length}.',
-        name: 'ParallelQueue',
-      );
-    }
+    _completerByKey.remove(key);
+    _waitingCallbacks.remove(key);
+    _completerByKey[key]?.completeError(CallbackCancelledException._(key));
+    _updateQueueStatus('[$key] left the queue.');
   }
 
-  void _updateQueueStatus(String message) {
-    if (verbose) {
-      log(
-        '$message Running: $_runningCallbacks.'
-        ' Waiting: ${_waitingCallbacks.length}.',
-        name: 'ParallelQueue',
-      );
-    }
-    _streamController.add(message);
+  void _updateQueueStatus(String event) {
+    final formattedEvent = _formatEvent(event);
+    _streamController.sink.add(formattedEvent);
+    if (!verbose) return;
+    log(formattedEvent, name: 'AsyncParallelQueue');
+  }
+
+  String _formatEvent(String event) {
+    return '$event | Running: $_runningCallbacks.'
+        ' Waiting: ${_waitingCallbacks.length}.';
   }
 }
 
 /// Error thrown when callback is cancelled by [cancelCallback].
-class CallbackCancelledException {}
+class CallbackCancelledException {
+  const CallbackCancelledException._(this.key);
+  final Object key;
+
+  @override
+  String toString() => 'CallbackCancelledException(key: $key)';
+}
