@@ -144,4 +144,37 @@ void main() {
       ),
     );
   });
+
+  test('debugStream should show queue updates', () async {
+    dut = AsyncParallelQueue(workers: 1);
+    final debugController = StreamController<String>();
+    dut.debugStream.listen(debugController.add);
+
+    expect(
+        debugController.stream,
+        emitsInOrder([
+          '[0] entered the queue. | Running: 0. Waiting: 1.',
+          '[1] entered the queue. | Running: 0. Waiting: 2.',
+          '[2] entered the queue. | Running: 0. Waiting: 3.',
+          '[3] entered the queue. | Running: 0. Waiting: 4.',
+          '[0] start running. | Running: 1. Waiting: 3.',
+          '[0] completed with success. | Running: 0. Waiting: 3.',
+          '[1] start running. | Running: 1. Waiting: 2.',
+          '[2] left the queue. | Running: 1. Waiting: 1.',
+          '[1] completed with success. | Running: 0. Waiting: 1.',
+          '[3] start running. | Running: 1. Waiting: 0.',
+          '[1] is not in queue. | Running: 1. Waiting: 0.',
+          '[2] is not in queue. | Running: 1. Waiting: 0.',
+          '[3] completed with success. | Running: 0. Waiting: 0.',
+        ]));
+
+    dut.registerCallback(0, () {});
+    dut.registerCallback(1, () => dut.cancelCallback(2));
+    dut.registerCallback(2, () {}).catchError((_) {});
+
+    await dut.registerCallback(3, () {
+      dut.cancelCallback(1);
+      dut.cancelCallback(2);
+    });
+  });
 }
