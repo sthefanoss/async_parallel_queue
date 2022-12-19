@@ -72,9 +72,9 @@ class AsyncParallelQueue<K extends Object> {
   void cancelCallback(K key) {
     if (!_waitingCallbacks.contains(key)) return _updateQueueStatus('[$key] is not in queue.');
 
-    _completerByKey.remove(key);
     _waitingCallbacks.remove(key);
-    _completerByKey[key]?.completeError(CallbackCancelledException._(key));
+    _completerByKey.remove(key)?.completeError(CallbackCancelledException<K>(key));
+
     _updateQueueStatus('[$key] left the queue.');
   }
 
@@ -92,10 +92,19 @@ class AsyncParallelQueue<K extends Object> {
 }
 
 /// Error thrown when callback is cancelled by [cancelCallback].
-class CallbackCancelledException {
-  const CallbackCancelledException._(this.key);
-  final Object key;
+class CallbackCancelledException<K extends Object> {
+  const CallbackCancelledException(this.key);
+  final K key;
 
   @override
   String toString() => 'CallbackCancelledException(key: $key)';
+
+  @override
+  bool operator ==(dynamic other) {
+    if (other is! CallbackCancelledException) return false;
+    return key == other.key;
+  }
+
+  @override
+  int get hashCode => key.hashCode;
 }
