@@ -1,3 +1,10 @@
+## 1.0.3
+
+- Set library dart sdk to 2.12.0 properly.
+- Use quiver for hash2. 
+- Update package description.
+- Update READEME.md
+
 ## 1.0.2
 
 - Make KeyAlreadyInUseException for prevent user from registering callback with a key already in use.

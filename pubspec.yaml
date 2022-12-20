@@ -1,6 +1,6 @@
 name: async_parallel_queue
-description: Handle async calls in order with a number of workers.
-version: 1.0.2
+description: Library to enqueue async callbacks to be executed in order. You can await for they completion and/or cancel the execution by id.
+version: 1.0.3
 homepage: https://github.com/sthefanoss/async_parallel_queue
 
 environment:
