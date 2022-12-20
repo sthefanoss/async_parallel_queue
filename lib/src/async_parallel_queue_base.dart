@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:developer';
+import 'exceptions.dart';
 
 class AsyncParallelQueue<K extends Object> {
   AsyncParallelQueue({
@@ -31,6 +32,9 @@ class AsyncParallelQueue<K extends Object> {
   /// Register a callback to be executed when there is a available worker.
   /// Can wait for result. Key is required and is used for know callback position on queue and for cancellation.
   Future<T> registerCallback<T>(K key, FutureOr<T> Function() callback) async {
+    if (_completerByKey.containsKey(key)) {
+      throw KeyAlreadyInUseException(key);
+    }
     final completer = Completer<T>();
 
     _waitingCallbacks.add(key);
@@ -89,22 +93,4 @@ class AsyncParallelQueue<K extends Object> {
     return '$event | Running: $_runningCallbacks.'
         ' Waiting: ${_waitingCallbacks.length}.';
   }
-}
-
-/// Error thrown when callback is cancelled by [cancelCallback].
-class CallbackCancelledException<K extends Object> {
-  const CallbackCancelledException(this.key);
-  final K key;
-
-  @override
-  String toString() => 'CallbackCancelledException(key: $key)';
-
-  @override
-  bool operator ==(dynamic other) {
-    if (other is! CallbackCancelledException) return false;
-    return key == other.key;
-  }
-
-  @override
-  int get hashCode => key.hashCode;
 }

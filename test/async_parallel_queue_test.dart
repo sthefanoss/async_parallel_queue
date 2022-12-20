@@ -177,4 +177,11 @@ void main() {
       dut.cancelCallback(2);
     });
   });
+
+  test('should throw KeyAlreadyInUseException when registering callback with key in already in use on queue ', () async {
+    dut = AsyncParallelQueue(workers: 1);
+    dut.registerCallback(0, () async => await Future.delayed(Duration(milliseconds: 100)));
+    dut.registerCallback(1, () {});
+    expect(() => dut.registerCallback(1, () => {}), throwsException);
+  });
 }
