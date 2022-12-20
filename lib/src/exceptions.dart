@@ -1,4 +1,5 @@
 import 'async_parallel_queue_base.dart';
+import 'package:quiver/core.dart';
 
 /// Error thrown when callback is registered with a key already in use in [AsyncParallelQueue.registerCallback].
 class KeyAlreadyInUseException<K extends Object> implements Exception {
@@ -15,7 +16,7 @@ class KeyAlreadyInUseException<K extends Object> implements Exception {
   }
 
   @override
-  int get hashCode => Object.hash(key, 'Key');
+  int get hashCode => hash2(key, 'key-exception');
 }
 
 /// Error thrown when callback is cancelled by [AsyncParallelQueue.cancelCallback].
@@ -33,5 +34,5 @@ class CallbackCancelledException<K extends Object> implements Exception {
   }
 
   @override
-  int get hashCode => Object.hash(key, 'Cancel');
+  int get hashCode => hash2(key, 'cancel-exception');
 }
